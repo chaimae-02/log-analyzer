@@ -1,0 +1,24 @@
+{
+  "name": "devops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaimae-02/log-analyzer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chaimae-02/log-analyzer/issues"
+  },
+  "homepage": "https://github.com/chaimae-02/log-analyzer#readme",
+  "dependencies": {
+    "chalk": "^5.4.1"
+  }
+}
