@@ -1,0 +1,5 @@
+INFO Application démarrée
+ERROR Fichier introuvable
+WARNING Mémoire faible
+INFO Traitement en cours
+ERROR Base de données non disponible
