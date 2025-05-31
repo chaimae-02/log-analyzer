@@ -1,0 +1,49 @@
+name: CI - Analyse des Logs
+on: [push, pull_request]
+
+jobs:
+  analyse-logs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Installer les dépendances
+      run: npm install chalk
+    
+    - name: Exécuter l'analyseur
+      id: run-script
+      run: |
+        OUTPUT=$(node analyse-logs.js)
+        echo "output=$OUTPUT" >> $GITHUB_OUTPUT
+        
+        # Capturer les comptes depuis la sortie console
+        ERRORS=$(echo "$OUTPUT" | grep -oP 'ERROR: \K\d+')
+        WARNINGS=$(echo "$OUTPUT" | grep -oP 'WARNING: \K\d+')
+        INFOS=$(echo "$OUTPUT" | grep -oP 'INFO: \K\d+')
+        
+        echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+        echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+        echo "infos=$INFOS" >> $GITHUB_OUTPUT
+    
+    - name: Vérifier les résultats
+      run: |
+        if [ "${{ steps.run-script.outputs.errors }}" != "2" ]; then
+          echo "ERREUR: Nombre d'ERROR incorrect (attendu: 2, obtenu: ${{ steps.run-script.outputs.errors }})"
+          exit 1
+        fi
+        
+        if [ "${{ steps.run-script.outputs.warnings }}" != "1" ]; then
+          echo "ERREUR: Nombre de WARNING incorrect (attendu: 1, obtenu: ${{ steps.run-script.outputs.warnings }})"
+          exit 1
+        fi
+        
+        if [ "${{ steps.run-script.outputs.infos }}" != "2" ]; then
+          echo "ERREUR: Nombre d'INFO incorrect (attendu: 2, obtenu: ${{ steps.run-script.outputs.infos }})"
+          exit 1
+        fi
+        
+        echo "Tous les tests ont réussi !"
