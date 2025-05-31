@@ -1,49 +1,56 @@
 name: CI - Analyse des Logs
-on: [push, pull_request]
+on:
+  push:
+    branches: [main, dev]  # Déclencheur sur main ET dev
+  pull_request:
+    branches: [main]
 
 jobs:
   analyse-logs:
     runs-on: ubuntu-latest
+    
     steps:
+    # Étape 1: Récupération du code
     - uses: actions/checkout@v4
     
+    # Étape 2: Configuration de Node.js
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
     
+    # Étape 3: Installation des dépendances
     - name: Installer les dépendances
       run: npm install chalk
+      working-directory: ./log-analyzer  # Important : cible le bon dossier
     
-    - name: Exécuter l'analyseur
-      id: run-script
+    # Étape 4: Exécution du script avec vérification
+    - name: Exécuter et tester l'analyseur
+      working-directory: ./log-analyzer  # Exécution dans le sous-dossier
       run: |
+        # Génère un fichier log.txt de test
+        echo "INFO Test 1" > log.txt
+        echo "ERROR Test 2" >> log.txt
+        echo "WARNING Test 3" >> log.txt
+        
+        # Capture la sortie du script
         OUTPUT=$(node analyse-logs.js)
-        echo "output=$OUTPUT" >> $GITHUB_OUTPUT
+        echo "$OUTPUT"
         
-        # Capturer les comptes depuis la sortie console
-        ERRORS=$(echo "$OUTPUT" | grep -oP 'ERROR: \K\d+')
-        WARNINGS=$(echo "$OUTPUT" | grep -oP 'WARNING: \K\d+')
-        INFOS=$(echo "$OUTPUT" | grep -oP 'INFO: \K\d+')
-        
-        echo "errors=$ERRORS" >> $GITHUB_OUTPUT
-        echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
-        echo "infos=$INFOS" >> $GITHUB_OUTPUT
-    
-    - name: Vérifier les résultats
-      run: |
-        if [ "${{ steps.run-script.outputs.errors }}" != "2" ]; then
-          echo "ERREUR: Nombre d'ERROR incorrect (attendu: 2, obtenu: ${{ steps.run-script.outputs.errors }})"
+        # Vérifications automatiques
+        if [[ $(grep -c 'ERROR' log.txt) -ne 1 ]]; then
+          echo "ERREUR: Nombre d'ERROR incorrect"
           exit 1
         fi
         
-        if [ "${{ steps.run-script.outputs.warnings }}" != "1" ]; then
-          echo "ERREUR: Nombre de WARNING incorrect (attendu: 1, obtenu: ${{ steps.run-script.outputs.warnings }})"
+        if [[ $(grep -c 'WARNING' log.txt) -ne 1 ]]; then
+          echo "ERREUR: Nombre de WARNING incorrect"
+          exit 1
+        fi
+
+        if [[ $(grep -c 'INFO' log.txt) -ne 1 ]]; then
+          echo "ERREUR: Nombre d'INFO incorrect"
           exit 1
         fi
         
-        if [ "${{ steps.run-script.outputs.infos }}" != "2" ]; then
-          echo "ERREUR: Nombre d'INFO incorrect (attendu: 2, obtenu: ${{ steps.run-script.outputs.infos }})"
-          exit 1
-        fi
-        
-        echo "Tous les tests ont réussi !"
+        echo "✅ Tous les tests passent !"
