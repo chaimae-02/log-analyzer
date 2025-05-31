@@ -34,7 +34,7 @@ jobs:
         echo "WARNING Test 3" >> log.txt
         
         # Capture la sortie du script
-        OUTPUT=$(node analyse-logs.js)
+        OUTPUT=$(node analyser.js)
         echo "$OUTPUT"
         
         # Vérifications automatiques
